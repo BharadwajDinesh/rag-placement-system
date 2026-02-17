@@ -16,10 +16,10 @@ This project implements an intelligent question-answering system that:
 The system follows a modern microservices architecture with three main components:
 
 ```
-┌─────────────┐      ┌─────────────┐      ┌──────────────┐
+┌─────────────┐       ┌─────────────┐       ┌──────────────┐
 │  Frontend   │ ───▶ │   Backend   │ ───▶ │   MongoDB    │
-│  (Vite/JS)  │      │  (FastAPI)  │      │    Atlas     │
-└─────────────┘      └─────────────┘      └──────────────┘
+│  (Vite/JS)  │       │  (FastAPI)  │       │    Atlas     │
+└─────────────┘       └─────────────┘       └──────────────┘
                             │
                             ▼
                      ┌──────────────┐
