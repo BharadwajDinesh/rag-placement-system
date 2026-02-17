@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-uri = "mongodb+srv://NIGHTFURY:d5RX6H9wSFuMMTkJ@ragcluster.rcxx58o.mongodb.net/?appName=RAGcluster"
+uri = "Paste Connection String here"
 
 client = MongoClient(uri)
 
