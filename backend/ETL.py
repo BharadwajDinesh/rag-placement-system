@@ -21,13 +21,32 @@ def process_pdf_pipeline():
         settings.MONGODB_COLLECTION)
 
     pdf_file = Path("data/Institute_Placement_Policy-IIITK_2025.pdf")
+
     # Generate Chunks
     chunkS = pdf_processor.process_pdf(str(pdf_file))
     
     # Generate Embeddings
     texts = [chunk["text"] for chunk in chunkS]
+        # print(texts[:1])
     embeddings = embedding_service.generate_embeddings(texts)
-    print(embeddings)
+        # print(embeddings)
+
+    # Create document with embeddings
+    documents = []
+    for chunk, embedding in zip(chunkS, embeddings):
+        doc = {
+            "text": chunk["text"],
+            "chunk_id": chunk["chunk_id"],
+            "chunk_index": chunk["chunk_index"],
+            "embedding": embedding.tolist() if hasattr(embedding, 'tolist') else embedding,
+            "metadata": chunk.get("metadata", {})
+        }
+        documents.append(doc)
+        # print(documents)
+
+    # Store to MangoDB
+    vector_store.insert_documents(documents)
+    print(f"✅ Stored {len(documents)} documents in MongoDB!")
 
     
     
