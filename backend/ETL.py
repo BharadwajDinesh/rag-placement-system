@@ -28,6 +28,8 @@ def process_pdf_pipeline():
     texts = [chunk["text"] for chunk in chunkS]
     embeddings = embedding_service.generate_embeddings(texts)
     print(embeddings)
+
+    
     
 
 process_pdf_pipeline()
