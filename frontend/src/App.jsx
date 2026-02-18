@@ -1,84 +1,90 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import Header from './components/Header.jsx'
+import MessageList from './components/MessageList.jsx'
+import InputBox from './components/InputBox.jsx'
+import WelcomeScreen from './components/WelcomeScreen.jsx'
 import './App.css'
+
+const SUGGESTED_QUESTIONS = [
+  "What is the One Student One Job policy?",
+  "What are the eligibility criteria for placements?",
+  "What is the role of the Training and Placement Cell?",
+  "Can I participate in placements with a backlog?",
+]
 
 function App() {
   const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const messagesEndRef = useRef(null)
 
-  const sendMessage = async () => {
-    if (!input.trim()) return
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
-    const userMessage = { role: 'user', content: input }
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, loading])
+
+  const sendMessage = async (text) => {
+    const query = text.trim()
+    if (!query || loading) return
+
+    const userMsg = { role: 'user', content: query, id: Date.now() }
+    setMessages(prev => [...prev, userMsg])
     setLoading(true)
 
     try {
-      const response = await fetch('http://localhost:8000/query', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input })
+        body: JSON.stringify({ query, top_k: 3 })
       })
 
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`)
+      }
+
       const data = await response.json()
-      
-      const assistantMessage = {
+
+      const botMsg = {
         role: 'assistant',
         content: data.answer,
-        sources: data.sources
+        sources: data.sources,
+        id: Date.now() + 1
       }
-      
-      setMessages(prev => [...prev, assistantMessage])
+      setMessages(prev => [...prev, botMsg])
     } catch (error) {
-      console.error('Error:', error)
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: "Sorry, I couldn't connect to the server. Please make sure the backend is running.",
+        error: true,
+        id: Date.now() + 1
       }])
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <div className="app">
-      <div className="chat-container">
-        <h1>College Placement Policy Assistant</h1>
-        
-        <div className="messages">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`message ${msg.role}`}>
-              <div className="message-content">{msg.content}</div>
-              {msg.sources && (
-                <details className="sources">
-                  <summary>View Sources</summary>
-                  {msg.sources.map((src, i) => (
-                    <div key={i} className="source">
-                      {src.text}... (Score: {src.score.toFixed(3)})
-                    </div>
-                  ))}
-                </details>
-              )}
-            </div>
-          ))}
-          {loading && <div className="message assistant loading">Thinking...</div>}
-        </div>
+  const clearChat = () => setMessages([])
 
-        <div className="input-area">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask about placement policies..."
-            disabled={loading}
+  return (
+    <div className="app-layout">
+      <Header onClear={clearChat} hasMessages={messages.length > 0} />
+      <main className="chat-area">
+        {messages.length === 0 ? (
+          <WelcomeScreen
+            suggestions={SUGGESTED_QUESTIONS}
+            onSuggest={sendMessage}
           />
-          <button onClick={sendMessage} disabled={loading}>
-            Send
-          </button>
-        </div>
-      </div>
+        ) : (
+          <MessageList
+            messages={messages}
+            loading={loading}
+            messagesEndRef={messagesEndRef}
+          />
+        )}
+      </main>
+      <InputBox onSend={sendMessage} loading={loading} />
     </div>
   )
 }

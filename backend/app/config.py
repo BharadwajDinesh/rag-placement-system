@@ -9,20 +9,23 @@ class Settings(BaseSettings):
     MONGODB_DB_NAME: str = "placement_rag"
     MONGODB_COLLECTION: str = "documents"
     
-    # HuggingFace API
+    # HuggingFace API (for embeddings)
     HUGGINGFACE_API_KEY: str
+    
+    # Groq API (for LLM generation)
+    GROQ_API_KEY: str
     
     # Models
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
-    LLM_MODEL: str = "google/flan-t5-base"
+    LLM_MODEL: str = "llama-3.3-70b-versatile"  # Groq model
     
     # API
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     
     # Vector Search
-    TOP_K: int = 3
-    SIMILARITY_THRESHOLD: float = 0.7
+    TOP_K: int = 5
+    SIMILARITY_THRESHOLD: float = 0.5
     
     class Config:
         env_file = ".env"
